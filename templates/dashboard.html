@@ -1,60 +1,85 @@
+<!-- templates/dashboard.html -->
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>UP 主画像仪表盘</title>
-    <link rel="stylesheet" href="/static/dashboard.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
-    <div class="container">
+    <div class="page">
+        <!-- 左侧信息栏 -->
+        <aside class="sidebar">
+            <h2>UP 基本信息</h2>
 
-        <!-- 左侧基本信息 -->
-        <div class="left-card">
-            <h2>UP 主画像</h2>
-
-            <div class="info">
-                <p><b>UID：</b><span id="uid">-</span></p>
-                <p><b>名称：</b><span id="up_name">-</span></p>
-                <p><b>粉丝：</b><span id="followers">-</span></p>
+            <div class="info-row">
+                <span class="label">UID：</span>
+                <span id="uid_text" class="value">{{ uid }}</span>
             </div>
 
-            <h3>商业价值分类</h3>
-            <p id="label" class="tag">-</p>
-
-            <h3>置信度</h3>
-            <p id="confidence">-</p>
-        </div>
-
-
-        <!-- 右侧图表区 -->
-        <div class="right-panel">
-
-            <h3>指标对比（UP vs 优质UP中位数）</h3>
-
-            <div class="chart-block">
-                <h4>📊 播放表现</h4>
-                <canvas id="chart_play"></canvas>
+            <div class="info-row">
+                <span class="label">UP主：</span>
+                <span id="up_name" class="value">-</span>
             </div>
 
-            <div class="chart-block">
-                <h4>📊 互动表现</h4>
-                <canvas id="chart_interact"></canvas>
+            <div class="info-row">
+                <span class="label">粉丝数：</span>
+                <span id="followers" class="value">-</span>
             </div>
 
-            <div class="chart-block">
-                <h4>📊 内容结构指标</h4>
-                <canvas id="chart_content"></canvas>
+            <h3 class="section-title">模型判断</h3>
+            <div class="info-row">
+                <span class="label">商业分类：</span>
+                <span id="label_name" class="tag">-</span>
             </div>
 
-        </div>
+            <div class="info-row">
+                <span class="label">置信度：</span>
+                <span id="confidence" class="value">-</span>
+            </div>
 
+            <h3 class="section-title">商业价值评分</h3>
+            <div class="score-box">
+                <div id="value_score" class="score-value">-</div>
+                <div id="score_percentile" class="score-sub">评分区间：<span id="score_bucket">-</span></div>
+            </div>
+        </aside>
+
+        <!-- 右侧 2 × 2 卡片布局 -->
+        <main class="main-grid">
+            <!-- interaction_primary: avg_comment_scraped, avg_danmaku -->
+            <section class="card">
+                <div class="card-title">interaction</div>
+                <canvas id="chart_interaction_primary"></canvas>
+            </section>
+
+            <!-- play_stats: avg_play, med_play -->
+            <section class="card">
+                <div class="card-title">play_stats</div>
+                <canvas id="chart_play_stats"></canvas>
+            </section>
+
+            <!-- interaction_behavior: danmaku_missing_rate, comment_repetition, upload_freq -->
+            <section class="card">
+                <div class="card-title">interaction (behavior)</div>
+                <canvas id="chart_interaction_behavior"></canvas>
+            </section>
+
+            <!-- video_length: avg_length, std_length -->
+            <section class="card">
+                <div class="card-title">video_length</div>
+                <canvas id="chart_video_length"></canvas>
+            </section>
+        </main>
     </div>
 
-    <script src="/static/dashboard.js"></script>
-
+    <script>
+        const UID_FROM_SERVER = "{{ uid }}";
+    </script>
+    <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
 </body>
 
 </html>

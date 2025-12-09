@@ -1,48 +1,80 @@
+<!-- templates/home.html -->
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 
 <head>
-    <title>UP 主分析系统</title>
+    <meta charset="UTF-8" />
+    <title>UP 商业价值分析</title>
     <style>
         body {
-            font-family: Arial;
-            margin: 40px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+            background: #f5f5f5;
         }
 
-        input {
-            padding: 10px;
-            font-size: 18px;
-            width: 260px;
+        .container {
+            max-width: 960px;
+            margin: 80px auto;
+            background: #fff;
+            padding: 40px 48px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
         }
 
-        button {
-            margin-top: 15px;
-            padding: 10px 18px;
+        h1 {
+            margin-top: 0;
+            margin-bottom: 24px;
+            font-size: 28px;
+        }
+
+        .field {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px 12px;
             font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: #409eff;
+        }
+
+        .btn {
+            margin-top: 16px;
+            padding: 10px 22px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            color: #fff;
+            background: #409eff;
         }
     </style>
 </head>
 
 <body>
-
-    <h1>UP 主价值分析系统</h1>
-    <p>请输入 UID：</p>
-
-    <input id="uidInput" placeholder="例如：383433896">
-    <br>
-    <button onclick="go()">查看画像</button>
-
-    <script>
-        function go() {
-            const uid = document.getElementById("uidInput").value.trim();
-            if (!uid) return alert("请输入UID！");
-            window.location.href = "/dashboard?uid=" + uid;
-        }
-    </script>
-
+    <div class="container">
+        <h1>UP 主画像 · 商业价值分析</h1>
+        <form action="/dashboard" method="get">
+            <div class="field">
+                <label for="uid">请输入 B 站 UID：</label>
+                <input id="uid" name="uid" type="text" placeholder="例如：383433896" />
+            </div>
+            <button class="btn" type="submit">查看画像</button>
+        </form>
+    </div>
 </body>
 
 </html>
