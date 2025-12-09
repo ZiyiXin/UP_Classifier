@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>UP 主分析系统</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 18px;
+            width: 260px;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 10px 18px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>UP 主价值分析系统</h1>
+    <p>请输入 UID：</p>
+
+    <input id="uidInput" placeholder="例如：383433896">
+    <br>
+    <button onclick="go()">查看画像</button>
+
+    <script>
+        function go() {
+            const uid = document.getElementById("uidInput").value.trim();
+            if (!uid) return alert("请输入UID！");
+            window.location.href = "/dashboard?uid=" + uid;
+        }
+    </script>
+
+</body>
+
+</html>

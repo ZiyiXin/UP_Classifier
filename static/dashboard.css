@@ -1,0 +1,55 @@
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    background: #fafafa;
+}
+
+.container {
+    display: flex;
+    padding: 10px 20px;
+}
+
+.left-card {
+    width: 260px;
+    padding: 15px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+    margin-right: 20px;
+    height: fit-content;
+}
+
+.tag {
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.tag.good {
+    background: #d2f5d0;
+    color: #197a0f;
+}
+
+.tag.low {
+    background: #ffd8d6;
+    color: #b02418;
+}
+
+.right-panel {
+    flex: 1;
+}
+
+.chart-block {
+    margin-bottom: 18px;
+    background: white;
+    padding: 10px 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.08);
+}
+
+.chart-block canvas {
+    height: 220px !important;
+    /* 强制压缩图表高度 */
+    max-height: 220px;
+}

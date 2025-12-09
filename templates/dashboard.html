@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <title>UP 主画像仪表盘</title>
+    <link rel="stylesheet" href="/static/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="container">
+
+        <!-- 左侧基本信息 -->
+        <div class="left-card">
+            <h2>UP 主画像</h2>
+
+            <div class="info">
+                <p><b>UID：</b><span id="uid">-</span></p>
+                <p><b>名称：</b><span id="up_name">-</span></p>
+                <p><b>粉丝：</b><span id="followers">-</span></p>
+            </div>
+
+            <h3>商业价值分类</h3>
+            <p id="label" class="tag">-</p>
+
+            <h3>置信度</h3>
+            <p id="confidence">-</p>
+        </div>
+
+
+        <!-- 右侧图表区 -->
+        <div class="right-panel">
+
+            <h3>指标对比（UP vs 优质UP中位数）</h3>
+
+            <div class="chart-block">
+                <h4>📊 播放表现</h4>
+                <canvas id="chart_play"></canvas>
+            </div>
+
+            <div class="chart-block">
+                <h4>📊 互动表现</h4>
+                <canvas id="chart_interact"></canvas>
+            </div>
+
+            <div class="chart-block">
+                <h4>📊 内容结构指标</h4>
+                <canvas id="chart_content"></canvas>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="/static/dashboard.js"></script>
+
+</body>
+
+</html>
