@@ -41,11 +41,26 @@
                 <span id="confidence" class="value">-</span>
             </div>
 
-            <h3 class="section-title">商业价值评分</h3>
+            <h3 class="section-title">商业价值评分（综合）</h3>
             <div class="score-box">
                 <div id="value_score" class="score-value">-</div>
-                <div id="score_percentile" class="score-sub">评分区间：<span id="score_bucket">-</span></div>
+                <div class="score-sub">
+                    评分区间：<span id="score_bucket">-</span>
+                    <span id="score_percentile_text"></span>
+                </div>
+                <div class="score-sub">
+                    模型置信度：<span id="score_confidence_text">-</span>
+                </div>
+                <div class="score-sub">
+                    行为贡献（SHAP）：<span id="score_shap_text">-</span>
+                </div>
             </div>
+
+            <h3 class="section-title">商业价值解释（AI 诊断）</h3>
+            <ul id="contribution-list"></ul>
+
+            <h3 class="section-title">提升建议</h3>
+            <ul id="suggestion-list"></ul>
         </aside>
 
         <!-- 右侧 2 × 2 卡片布局 -->

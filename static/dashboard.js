@@ -1,186 +1,195 @@
-// static/dashboard.js
+// dashboard.js
+// 单个 UP 仪表盘：调用 /api/predict/<uid> 和 /api/stats/good 画四个分组图
 
-// 取 URL 中的 uid（或模板传入的 UID_FROM_SERVER）
-function getUID() {
-    if (typeof UID_FROM_SERVER !== "undefined" && UID_FROM_SERVER) {
-        return String(UID_FROM_SERVER).trim();
-    }
-    const params = new URLSearchParams(window.location.search);
-    return (params.get("uid") || "").trim();
-}
-
-const uid = getUID();
-if (!uid) {
-    alert("URL 缺少 uid 参数，例如：/dashboard?uid=383433896");
-}
-
-// Chart 实例
-let chartInteractionPrimary = null;
-let chartPlayStats = null;
-let chartInteractionBehavior = null;
-let chartVideoLength = null;
-
-// 构造一个通用的数据集
-function buildDatasets(keys, predFeatures, median, minVals) {
-    const upVals = [];
-    const medianVals = [];
-    const minValues = [];
-
-    keys.forEach((k) => {
-        upVals.push(predFeatures[k]);
-        medianVals.push(median[k]);
-        minValues.push(minVals[k]);
-    });
-
-    return [
-        {
-            label: "当前UP",
-            data: upVals,
-            backgroundColor: "rgba(54, 162, 235, 0.7)",
-        },
-        {
-            label: "优质UP 中位数",
-            data: medianVals,
-            backgroundColor: "rgba(255, 159, 64, 0.7)",
-        },
-        {
-            label: "优质UP 最小值",
-            data: minValues,
-            backgroundColor: "rgba(99, 194, 111, 0.7)",
-        },
-    ];
-}
-
-// 生成一个柱状图
-function createBarChart(ctx, labels, datasets) {
-    return new Chart(ctx, {
-        type: "bar",
-        data: {
-            labels,
-            datasets,
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: {
-                    ticks: {
-                        autoSkip: false,
-                        maxRotation: 45,
-                    },
-                },
-                y: {
-                    beginAtZero: true,
-                },
-            },
-            plugins: {
-                legend: {
-                    display: true,
-                },
-            },
-        },
-    });
-}
+const FEATURE_GROUPS = {
+    interaction_primary: ["avg_comment_scraped", "avg_danmaku"],
+    play_stats: ["avg_play", "med_play"],
+    interaction_behavior: ["danmaku_missing_rate", "comment_repetition", "upload_freq"],
+    video_length: ["avg_length", "std_length"],
+};
 
 async function loadDashboard() {
-    // 1. 请求预测结果
-    const predRes = await fetch(`/api/predict/${uid}`).then((r) => r.json());
-    if (!predRes.success) {
-        alert(predRes.message || "查询失败");
+    // UID 从模板注入（优先）或 URL 查询参数获取
+    const urlParams = new URLSearchParams(window.location.search);
+    const uidFromQuery = urlParams.get("uid");
+    const uid = (typeof UID_FROM_SERVER !== "undefined" && UID_FROM_SERVER) || uidFromQuery;
+
+    if (!uid) {
+        console.error("No UID provided");
         return;
     }
 
-    // 2. 请求优质UP统计
-    const stats = await fetch(`/api/stats/good`).then((r) => r.json());
+    // 请求预测信息、优质 UP 统计 + 解释
+    const [predResp, statsResp, presResp] = await Promise.all([
+        fetch(`/api/predict/${uid}`),
+        fetch("/api/stats/good"),
+        fetch(`/api/prescription/${uid}`),
+    ]);
 
-    // ==== 左侧信息填充 ====
-    document.getElementById("uid_text").innerText = predRes.uid;
-    document.getElementById("up_name").innerText = predRes.up_name || "-";
-    const followers = predRes.followers;
-    document.getElementById("followers").innerText =
-        followers && followers > 0 ? followers.toLocaleString() : "未知";
-
-    const pred = predRes.prediction;
-    const labelSpan = document.getElementById("label_name");
-    labelSpan.innerText = pred.label_name || "-";
-    labelSpan.classList.remove("low");
-    if (pred.label_binary === 0) {
-        labelSpan.classList.add("low");
+    if (!predResp.ok) {
+        console.error("Predict API error:", predResp.status);
+        return;
+    }
+    if (!statsResp.ok) {
+        console.error("Stats API error:", statsResp.status);
+        return;
     }
 
-    document.getElementById("confidence").innerText =
-        pred.confidence != null ? pred.confidence.toFixed(3) : "-";
-
-    document.getElementById("value_score").innerText =
-        pred.value_score != null ? pred.value_score.toFixed(2) : "-";
-
-    document.getElementById("score_percentile").innerHTML =
-        '评分区间：<span id="score_bucket">' + (pred.score_bucket || "-") + "</span>";
-
-    // ==== 特征组 ====
-    const features = predRes.features;
-    const median = stats.median;
-    const minVals = stats.min;
-
-    // 分组定义（与你的方案一致）
-    const interactionPrimaryKeys = ["avg_comment_scraped", "avg_danmaku"];
-    const playStatKeys = ["avg_play", "med_play"];
-    const interactionBehaviorKeys = [
-        "danmaku_missing_rate",
-        "comment_repetition",
-        "upload_freq",
-    ];
-    const videoLengthKeys = ["avg_length", "std_length"];
-
-    // interaction_primary
-    {
-        const ctx = document
-            .getElementById("chart_interaction_primary")
-            .getContext("2d");
-        if (chartInteractionPrimary) chartInteractionPrimary.destroy();
-        chartInteractionPrimary = createBarChart(
-            ctx,
-            interactionPrimaryKeys,
-            buildDatasets(interactionPrimaryKeys, features, median, minVals)
-        );
+    const pred = await predResp.json();
+    const stats = await statsResp.json();
+    let pres = null;
+    if (presResp.ok) {
+        pres = await presResp.json();
+    } else {
+        console.warn("Prescription API error:", presResp.status);
     }
 
-    // play_stats
-    {
-        const ctx = document.getElementById("chart_play_stats").getContext("2d");
-        if (chartPlayStats) chartPlayStats.destroy();
-        chartPlayStats = createBarChart(
-            ctx,
-            playStatKeys,
-            buildDatasets(playStatKeys, features, median, minVals)
-        );
+    if (!pred.success) {
+        console.error("Predict API returned error:", pred);
+        return;
     }
 
-    // interaction_behavior
-    {
-        const ctx = document
-            .getElementById("chart_interaction_behavior")
-            .getContext("2d");
-        if (chartInteractionBehavior) chartInteractionBehavior.destroy();
-        chartInteractionBehavior = createBarChart(
-            ctx,
-            interactionBehaviorKeys,
-            buildDatasets(interactionBehaviorKeys, features, median, minVals)
-        );
-    }
-
-    // video_length
-    {
-        const ctx = document
-            .getElementById("chart_video_length")
-            .getContext("2d");
-        if (chartVideoLength) chartVideoLength.destroy();
-        chartVideoLength = createBarChart(
-            ctx,
-            videoLengthKeys,
-            buildDatasets(videoLengthKeys, features, median, minVals)
-        );
+    fillInfoPanel(pred);
+    drawAllCharts(pred, stats);
+    if (pres) {
+        fillExplanation(pres);
     }
 }
 
+function fillInfoPanel(pred) {
+    const p = pred.prediction;
+
+    document.getElementById("up_name").innerText = pred.up_name || "-";
+    document.getElementById("followers").innerText = pred.followers ?? "-";
+    document.getElementById("label_name").innerText = p.label_name || "-";
+    document.getElementById("confidence").innerText = p.confidence.toFixed(3);
+    document.getElementById("value_score").innerText = p.value_score.toFixed(1);
+    document.getElementById("score_bucket").innerText = p.score_bucket;
+    const percentileSpan = document.getElementById("score_percentile_text");
+    if (percentileSpan) {
+        percentileSpan.innerText = `（${p.score_percentile.toFixed(1)}%）`;
+    }
+
+    const confSpan = document.getElementById("score_confidence_text");
+    if (confSpan) {
+        confSpan.innerText = `${(p.confidence * 100).toFixed(1)}%`;
+    }
+
+    const shapSpan = document.getElementById("score_shap_text");
+    if (shapSpan && typeof p.shap_norm === "number") {
+        shapSpan.innerText = `${(p.shap_norm * 100).toFixed(1)}%`;
+    }
+}
+
+function fillExplanation(pres) {
+    if (!pres || !pres.success) {
+        console.warn("No prescription data:", pres);
+        return;
+    }
+
+    const contributionList = document.getElementById("contribution-list");
+    const suggestionList = document.getElementById("suggestion-list");
+
+    contributionList.innerHTML = "";
+    suggestionList.innerHTML = "";
+
+    // 贡献值列表
+    Object.entries(pres.contributions).forEach(([feat, value]) => {
+        const li = document.createElement("li");
+        li.innerHTML = `<b>${feat}</b>: ${value.toFixed(3)}`;
+        li.style.color = value >= 0 ? "green" : "red";
+        contributionList.appendChild(li);
+    });
+
+    // 建议列表
+    (pres.suggestions || []).forEach((s) => {
+        const li = document.createElement("li");
+        li.textContent = s;
+        suggestionList.appendChild(li);
+    });
+}
+
+function drawAllCharts(pred, stats) {
+    const feats = pred.features;
+    const med = stats.median || {};
+    const min = stats.min || {};
+
+    drawGroupChart(
+        "chart_interaction_primary",
+        FEATURE_GROUPS.interaction_primary,
+        feats,
+        med,
+        min
+    );
+
+    drawGroupChart(
+        "chart_play_stats",
+        FEATURE_GROUPS.play_stats,
+        feats,
+        med,
+        min
+    );
+
+    drawGroupChart(
+        "chart_interaction_behavior",
+        FEATURE_GROUPS.interaction_behavior,
+        feats,
+        med,
+        min
+    );
+
+    drawGroupChart(
+        "chart_video_length",
+        FEATURE_GROUPS.video_length,
+        feats,
+        med,
+        min
+    );
+}
+
+function drawGroupChart(canvasId, cols, featValues, medianValues, minValues) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) {
+        console.warn("Canvas not found:", canvasId);
+        return;
+    }
+    const ctx = canvas.getContext("2d");
+
+    const labels = cols;
+    const upVals = cols.map((c) => featValues[c]);
+    const medVals = cols.map((c) => medianValues[c]);
+    const minVals = cols.map((c) => minValues[c]);
+
+    new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: "当前UP",
+                    data: upVals,
+                    backgroundColor: "rgba(54,162,235,0.7)",
+                },
+                {
+                    label: "优质UP 中位数",
+                    data: medVals,
+                    backgroundColor: "rgba(255,159,64,0.7)",
+                },
+                {
+                    label: "优质UP 最小值",
+                    data: minVals,
+                    backgroundColor: "rgba(75,192,192,0.7)",
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true },
+            },
+        },
+    });
+}
+
+// 初始化
 loadDashboard();
