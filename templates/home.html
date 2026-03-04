@@ -1,7 +1,5 @@
-<!-- templates/home.html -->
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="UTF-8" />
     <title>UP 商业价值分析</title>
@@ -20,6 +18,7 @@
             padding: 40px 48px;
             border-radius: 16px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            box-sizing: border-box;
         }
 
         h1 {
@@ -45,6 +44,7 @@
             border-radius: 8px;
             border: 1px solid #ddd;
             outline: none;
+            box-sizing: border-box;
         }
 
         input[type="text"]:focus {
@@ -61,20 +61,239 @@
             color: #fff;
             background: #409eff;
         }
+
+        .top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        #home-lang-toggle {
+            border: none;
+            background: none;
+            color: #409eff;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        #home-lang-toggle:hover {
+            background: rgba(64, 158, 255, 0.08);
+        }
+
+        .sub-text {
+            font-size: 13px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .results {
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1px solid #eee;
+        }
+
+        .list {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .item {
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 10px 12px;
+            cursor: pointer;
+            background: #fff;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+
+        .item:hover {
+            background: #f7fbff;
+            border-color: rgba(64, 158, 255, 0.35);
+        }
+
+        .item-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .item-sub {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .hint {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #e6a23c;
+        }
     </style>
 </head>
-
 <body>
     <div class="container">
-        <h1>UP 主画像 · 商业价值分析</h1>
-        <form action="/dashboard" method="get">
-            <div class="field">
-                <label for="uid">请输入 B 站 UID：</label>
-                <input id="uid" name="uid" type="text" placeholder="例如：383433896" />
-            </div>
-            <button class="btn" type="submit">查看画像</button>
-        </form>
-    </div>
-</body>
+        <div class="top-row">
+            <h1 id="home-title">UP 主画像 · 商业价值分析</h1>
+            <button id="home-lang-toggle">中 / EN</button>
+        </div>
 
+        <form id="search-form">
+            <div class="field">
+                <label for="query" id="uid-label">请输入 B 站 UID 或 UP 主名称：</label>
+                <input id="query" name="query" type="text" placeholder="例如：383433896 / 某某UP主" />
+                <div class="sub-text" id="uid-desc">支持 UID 精确搜索，也支持按 UP 主名字模糊搜索。</div>
+            </div>
+            <button class="btn" type="submit" id="submit-btn">查看画像</button>
+        </form>
+
+        <div class="results">
+            <div class="sub-text" id="result-title">搜索结果（点击进入仪表盘）</div>
+            <div id="hint" class="hint" style="display:none;"></div>
+            <ul id="result-list" class="list"></ul>
+        </div>
+
+        <div class="results">
+            <div class="sub-text" id="rec-title">随机推荐</div>
+            <ul id="rec-list" class="list"></ul>
+        </div>
+    </div>
+
+    <script>
+        // 简单多语言支持（和 dashboard 共用 localStorage("lang")）
+        const homeMessages = {
+            zh: {
+                title: "UP 主画像 · 商业价值分析",
+                uidLabel: "请输入 B 站 UID 或 UP 主名称：",
+                uidDesc: "支持 UID 精确搜索，也支持按 UP 主名字模糊搜索。",
+                placeholder: "例如：383433896 / 某某UP主",
+                submit: "查看画像",
+                langToggle: "中 / EN",
+                resultTitle: "搜索结果（点击进入仪表盘）",
+                recTitle: "随机推荐",
+                empty: "暂无结果，请换个关键词或直接输入 UID。",
+            },
+            en: {
+                title: "Creator Profile · Business Value Analysis",
+                uidLabel: "Enter a UID or creator name:",
+                uidDesc: "Supports exact UID search and fuzzy name search.",
+                placeholder: "e.g. 383433896 / creator name",
+                submit: "View Dashboard",
+                langToggle: "中 / EN",
+                resultTitle: "Search results (click to open dashboard)",
+                recTitle: "Random picks",
+                empty: "No results. Try another keyword or enter a UID.",
+            },
+        };
+
+        function applyHomeLang(lang) {
+            const m = homeMessages[lang] || homeMessages.zh;
+            document.getElementById("home-title").textContent = m.title;
+            document.getElementById("uid-label").textContent = m.uidLabel;
+            document.getElementById("uid-desc").textContent = m.uidDesc;
+            document.getElementById("query").placeholder = m.placeholder;
+            document.getElementById("submit-btn").textContent = m.submit;
+            document.getElementById("home-lang-toggle").textContent = m.langToggle;
+            document.getElementById("result-title").textContent = m.resultTitle;
+            document.getElementById("rec-title").textContent = m.recTitle;
+        }
+
+        const savedLang = localStorage.getItem("lang") || "zh";
+        let currentLang = savedLang;
+        applyHomeLang(currentLang);
+
+        document.getElementById("home-lang-toggle").addEventListener("click", () => {
+            currentLang = currentLang === "zh" ? "en" : "zh";
+            localStorage.setItem("lang", currentLang);
+            applyHomeLang(currentLang);
+            loadRecommendations();
+        });
+
+        function toDashboard(uid) {
+            window.location.href = `/dashboard?uid=${encodeURIComponent(uid)}`;
+        }
+
+        function renderList(container, items) {
+            container.innerHTML = "";
+            items.forEach((it) => {
+                const li = document.createElement("li");
+                li.className = "item";
+                const title = document.createElement("div");
+                title.className = "item-title";
+                title.textContent = it.up_name ? `${it.up_name}` : `UID ${it.uid}`;
+                const sub = document.createElement("div");
+                sub.className = "item-sub";
+                const followersText = typeof it.followers === "number" && it.followers >= 0 ? ` · followers ${it.followers}` : "";
+                sub.textContent = `UID ${it.uid}${followersText}`;
+                li.appendChild(title);
+                li.appendChild(sub);
+                li.addEventListener("click", () => toDashboard(it.uid));
+                container.appendChild(li);
+            });
+        }
+
+        async function loadRecommendations() {
+            const list = document.getElementById("rec-list");
+            if (!list) return;
+            try {
+                const resp = await fetch(`/api/recommendations?lang=${currentLang}&limit=8`);
+                const data = await resp.json();
+                if (data && data.success && Array.isArray(data.results)) {
+                    renderList(list, data.results);
+                }
+            } catch (e) {
+                // ignore
+            }
+        }
+
+        async function runSearch(query) {
+            const hint = document.getElementById("hint");
+            const list = document.getElementById("result-list");
+            if (!list || !hint) return;
+
+            hint.style.display = "none";
+            hint.textContent = "";
+            list.innerHTML = "";
+
+            const q = (query || "").trim();
+            if (!q) return;
+
+            // 数字直接当 UID 进 dashboard（闭环模式更快）
+            if (/^\d+$/.test(q)) {
+                toDashboard(q);
+                return;
+            }
+
+            try {
+                const resp = await fetch(`/api/search?query=${encodeURIComponent(q)}&lang=${currentLang}&limit=8`);
+                const data = await resp.json();
+                if (data && data.success && Array.isArray(data.results) && data.results.length > 0) {
+                    renderList(list, data.results);
+                } else {
+                    const m = homeMessages[currentLang] || homeMessages.zh;
+                    hint.textContent = (data && data.message) ? String(data.message) : m.empty;
+                    hint.style.display = "block";
+                }
+            } catch (e) {
+                const m = homeMessages[currentLang] || homeMessages.zh;
+                hint.textContent = m.empty;
+                hint.style.display = "block";
+            }
+        }
+
+        document.getElementById("search-form").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const q = document.getElementById("query").value;
+            runSearch(q);
+        });
+
+        // 默认加载随机推荐
+        loadRecommendations();
+    </script>
+</body>
 </html>

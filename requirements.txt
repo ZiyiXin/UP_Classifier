@@ -1,7 +1,8 @@
 flask>=2.3,<3.0
-pandas>=2.0
-numpy>=1.24
-scikit-learn>=1.6
-treeinterpreter>=0.2.3
-joblib>=1.3
-
+pandas>=2.0,<3.0
+numpy>=1.24,<2.0
+scikit-learn>=1.3,<2.0
+treeinterpreter>=0.2.3,<0.3
+joblib>=1.3,<2.0
+requests>=2.31,<3.0
+jieba>=0.42,<0.43
