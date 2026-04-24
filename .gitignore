@@ -22,6 +22,8 @@ env/
 .DS_Store
 Thumbs.db
 
+# Apple productivity documents
+*.numbers
+
 # Logs
 *.log
-
