@@ -3,172 +3,188 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>UP 主画像仪表盘</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
-    <!-- 顶部提示条：显示“分析失败 / 无作品”等信息 -->
-    <div id="global-message" class="global-message" style="display:none;"></div>
-
-    <!-- 顶部工具栏：独立在 page 外面 -->
     <header class="top-bar">
-        <button id="btn-back" class="link-button" data-i18n="back">返回</button>
+        <div class="top-bar-left">
+            <button id="btn-back" class="link-button" data-i18n="back">返回</button>
+            <div>
+                <div class="eyebrow" data-i18n="dashboardEyebrow">Creator Intelligence</div>
+                <h1 data-i18n="dashboardTitle">UP 商业价值仪表盘</h1>
+            </div>
+        </div>
 
         <div class="top-bar-right">
             <button id="btn-lang-toggle" class="link-button">中 / EN</button>
         </div>
     </header>
 
-    <!-- 主体区域：全宽布局（尽量一屏看完） -->
-    <div class="dashboard">
-        <!-- 顶部信息区 -->
-        <section class="header-grid">
-            <div class="card card-compact">
-                <div class="card-title" data-i18n="basicInfoTitle">UP 基本信息</div>
-                <div class="info-row">
-                    <span class="label" data-i18n="uidLabel">UID：</span>
-                    <span id="uid_text" class="value">{{ uid }}</span>
-                </div>
-                <div class="info-row">
-                    <span class="label" data-i18n="upNameLabel">UP主：</span>
-                    <span id="up_name" class="value">-</span>
-                </div>
-                <div class="info-row">
-                    <span class="label" data-i18n="followersLabel">粉丝数：</span>
-                    <span id="followers" class="value">-</span>
-                </div>
-            </div>
+    <div id="global-message" class="global-message" style="display:none;"></div>
 
-            <div class="card card-compact">
+    <main class="dashboard">
+        <section class="summary-grid" aria-label="Dashboard summary">
+            <article class="card profile-card">
+                <div class="profile-mark" id="creator_initial">UP</div>
+                <div class="profile-main">
+                    <div class="card-title" data-i18n="basicInfoTitle">UP 基本信息</div>
+                    <div id="up_name" class="profile-name">-</div>
+                    <div class="profile-meta">
+                        <span><span data-i18n="uidLabel">UID：</span><strong id="uid_text">{{ uid }}</strong></span>
+                        <span><span data-i18n="followersLabel">粉丝数：</span><strong id="followers">-</strong></span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="card decision-card">
                 <div class="card-title" data-i18n="modelSectionTitle">模型判断</div>
-                <div class="info-row">
+                <div class="decision-row">
                     <span class="label" data-i18n="bizClassLabel">商业分类：</span>
                     <span id="label_name" class="tag">-</span>
                 </div>
-                <div class="info-row">
+                <div class="metric-row">
                     <span class="label" data-i18n="confidenceLabel">置信度：</span>
-                    <span id="confidence" class="value">-</span>
+                    <strong id="confidence" class="value">-</strong>
                 </div>
-            </div>
+            </article>
 
-            <div class="card card-compact">
-                <div class="card-title" data-i18n="scoreSectionTitle">商业价值评分（综合）</div>
-                <div class="score-box">
-                    <div id="value_score" class="score-value">-</div>
-                    <div class="score-sub">
-                        <span data-i18n="scoreRangeLabel">评分区间：</span>
-                        <span id="score_bucket">-</span>
-                        <span id="score_percentile_text"></span>
+            <article class="card score-card">
+                <div class="card-title" data-i18n="scoreSectionTitle">商业价值评分</div>
+                <div class="score-layout">
+                    <div>
+                        <div id="value_score" class="score-value">-</div>
+                        <div class="score-bucket-line">
+                            <span id="score_bucket">-</span>
+                            <span id="score_percentile_text"></span>
+                        </div>
                     </div>
-                    <div class="score-sub">
-                        <span data-i18n="modelConfidenceLabel">模型置信度：</span>
-                        <span id="score_confidence_text">-</span>
-                    </div>
-                    <div class="score-sub">
-                        <span data-i18n="shapContributionLabel">行为贡献（SHAP）：</span>
-                        <span id="score_shap_text">-</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 主内容：左侧洞察（可滚动） + 右侧 2×2 图表（始终可见） -->
-        <div class="main-split">
-            <section class="insights-stack">
-                <div class="card">
-                    <div class="card-title-row">
-                        <div class="card-title" data-i18n="suggestionsSummaryTitle">总结结论</div>
-                        <button id="btn-open-insights" class="small-button" type="button" data-i18n="viewDetails">查看详情</button>
-                    </div>
-                    <p id="suggestion-summary"></p>
-                </div>
-
-                <div class="card">
-                    <div class="card-title" data-i18n="aiExplainTitle">商业价值解释（AI 诊断）</div>
-                    <div class="two-col">
+                    <div class="score-detail">
                         <div>
-                            <div class="mini-title" data-i18n="strengthsTitle">优势（Top 3）</div>
-                            <ul id="strength-list" class="mini-list"></ul>
+                            <span data-i18n="modelConfidenceLabel">模型置信度</span>
+                            <strong id="score_confidence_text">-</strong>
                         </div>
                         <div>
-                            <div class="mini-title" data-i18n="weaknessesTitle">短板（Top 3）</div>
+                            <span data-i18n="shapContributionLabel">行为贡献</span>
+                            <strong id="score_shap_text">-</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="score-meter" aria-hidden="true">
+                    <div id="score-meter-fill" class="score-meter-fill"></div>
+                </div>
+            </article>
+        </section>
+
+        <section class="workspace-grid">
+            <section class="insights-stack">
+                <div class="section-heading">
+                    <div>
+                        <div class="eyebrow" data-i18n="insightEyebrow">Diagnosis</div>
+                        <h2 data-i18n="insightColumnTitle">解释与行动建议</h2>
+                    </div>
+                    <button id="btn-open-insights" class="small-button" type="button" data-i18n="viewDetails">查看详情</button>
+                </div>
+
+                <article class="card summary-card">
+                    <div class="card-title" data-i18n="suggestionsSummaryTitle">总结结论</div>
+                    <p id="suggestion-summary"></p>
+                </article>
+
+                <article class="card explain-card">
+                    <div class="card-title" data-i18n="aiExplainTitle">商业价值解释</div>
+                    <div class="two-col">
+                        <div class="mini-panel">
+                            <div class="mini-title" data-i18n="strengthsTitle">优势 Top 3</div>
+                            <ul id="strength-list" class="mini-list"></ul>
+                        </div>
+                        <div class="mini-panel">
+                            <div class="mini-title" data-i18n="weaknessesTitle">短板 Top 3</div>
                             <ul id="weakness-list" class="mini-list"></ul>
                         </div>
                     </div>
-                </div>
+                </article>
 
-                <div class="card">
-                    <div class="card-title" data-i18n="peersTitle">同类 UP 对标（最相似 3 个）</div>
+                <article class="card peers-card">
+                    <div class="card-title" data-i18n="peersTitle">同类 UP 对标</div>
                     <ul id="peer-list"></ul>
-                </div>
+                </article>
             </section>
 
-            <main class="charts-grid">
-                <section class="card chart-card">
-                    <div class="card-title">interaction</div>
-                    <canvas id="chart_interaction_primary"></canvas>
-                </section>
+            <section class="charts-panel">
+                <div class="section-heading">
+                    <div>
+                        <div class="eyebrow" data-i18n="chartEyebrow">Benchmark</div>
+                        <h2 data-i18n="chartColumnTitle">核心特征对比</h2>
+                    </div>
+                </div>
 
-                <section class="card chart-card">
-                    <div class="card-title">play_stats</div>
-                    <canvas id="chart_play_stats"></canvas>
-                </section>
+                <div class="charts-grid">
+                    <article class="card chart-card">
+                        <div class="card-title" data-i18n="chartInteractionTitle">互动规模</div>
+                        <canvas id="chart_interaction_primary"></canvas>
+                    </article>
 
-                <section class="card chart-card">
-                    <div class="card-title">interaction (behavior)</div>
-                    <canvas id="chart_interaction_behavior"></canvas>
-                </section>
+                    <article class="card chart-card">
+                        <div class="card-title" data-i18n="chartPlayTitle">播放表现</div>
+                        <canvas id="chart_play_stats"></canvas>
+                    </article>
 
-                <section class="card chart-card">
-                    <div class="card-title">video_length</div>
-                    <canvas id="chart_video_length"></canvas>
-                </section>
-            </main>
-        </div>
-    </div>
+                    <article class="card chart-card">
+                        <div class="card-title" data-i18n="chartBehaviorTitle">互动质量</div>
+                        <canvas id="chart_interaction_behavior"></canvas>
+                    </article>
 
-    <!-- Insights 全屏详情弹窗 -->
+                    <article class="card chart-card">
+                        <div class="card-title" data-i18n="chartLengthTitle">内容节奏</div>
+                        <canvas id="chart_video_length"></canvas>
+                    </article>
+                </div>
+            </section>
+        </section>
+    </main>
+
     <div id="insights-modal" class="modal" style="display:none;">
         <div class="modal-card">
             <div class="modal-header">
-                <div class="modal-title" data-i18n="insightsTitle">AI 诊断详情</div>
+                <div>
+                    <div class="eyebrow" data-i18n="insightEyebrow">Diagnosis</div>
+                    <div class="modal-title" data-i18n="insightsTitle">AI 诊断详情</div>
+                </div>
                 <button id="btn-close-insights" class="small-button" type="button" data-i18n="close">关闭</button>
             </div>
 
             <div class="modal-body">
-                <div class="modal-section modal-summary">
+                <section class="modal-section modal-summary">
                     <div class="mini-title" data-i18n="suggestionsSummaryTitle">总结结论</div>
                     <pre id="modal-summary" class="pre-text"></pre>
-                </div>
+                </section>
 
-                <div class="modal-section">
-                    <div class="mini-title" data-i18n="aiExplainTitle">商业价值解释（AI 诊断）</div>
+                <section class="modal-section">
+                    <div class="mini-title" data-i18n="aiExplainTitle">商业价值解释</div>
                     <ul id="contribution-list" class="modal-list"></ul>
-                </div>
+                </section>
 
-                <div class="modal-section">
+                <section class="modal-section">
                     <div class="mini-title" data-i18n="suggestionsTitle">提升建议</div>
                     <ul id="suggestion-list" class="modal-list"></ul>
-                </div>
+                </section>
             </div>
         </div>
     </div>
 
-    <!-- Loading 蒙层 + 进度条 -->
     <div id="loading-overlay" class="loading-overlay" style="display:none;">
-    <div class="loading-card">
-        <div id="loading-text" class="loading-text">正在分析，请稍候…</div>
-        <div class="loading-bar">
-            <div id="loading-progress" class="loading-progress"></div>
+        <div class="loading-card">
+            <div id="loading-text" class="loading-text">正在分析，请稍候…</div>
+            <div class="loading-bar">
+                <div id="loading-progress" class="loading-progress"></div>
+            </div>
+            <button id="btn-cancel" class="ghost-button loading-cancel" data-i18n="cancel">终止分析</button>
         </div>
-        <!-- ⭐ 在 loading 卡片里放终止按钮 -->
-        <button id="btn-cancel" class="ghost-button loading-cancel" data-i18n="cancel">
-            终止分析
-        </button>
     </div>
-</div>
 
     <script>
         const UID_FROM_SERVER = "{{ uid }}";

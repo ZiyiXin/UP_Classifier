@@ -21,18 +21,28 @@ const MESSAGES = {
         goodMedian: "优质UP 中位数",
         goodMin: "优质UP 最小值",
 
+        dashboardEyebrow: "Creator Intelligence",
+        dashboardTitle: "UP 商业价值仪表盘",
+        insightEyebrow: "Diagnosis",
+        insightColumnTitle: "解释与行动建议",
+        chartEyebrow: "Benchmark",
+        chartColumnTitle: "核心特征对比",
         basicInfoTitle: "UP 基本信息",
         modelSectionTitle: "模型判断",
-        scoreSectionTitle: "商业价值评分（综合）",
-        aiExplainTitle: "商业价值解释（AI 诊断）",
+        scoreSectionTitle: "商业价值评分",
+        aiExplainTitle: "商业价值解释",
         suggestionsTitle: "提升建议",
         suggestionsSummaryTitle: "总结结论",
-        peersTitle: "同类 UP 对标（最相似 3 个）",
+        peersTitle: "同类 UP 对标",
         viewDetails: "查看详情",
         close: "关闭",
         insightsTitle: "AI 诊断详情",
-        strengthsTitle: "优势（Top 3）",
-        weaknessesTitle: "短板（Top 3）",
+        strengthsTitle: "优势 Top 3",
+        weaknessesTitle: "短板 Top 3",
+        chartInteractionTitle: "互动规模",
+        chartPlayTitle: "播放表现",
+        chartBehaviorTitle: "互动质量",
+        chartLengthTitle: "内容节奏",
 
         // 左侧 labels
         uidLabel: "UID：",
@@ -41,8 +51,8 @@ const MESSAGES = {
         bizClassLabel: "商业分类：",
         confidenceLabel: "置信度：",
         scoreRangeLabel: "评分区间：",
-        modelConfidenceLabel: "模型置信度：",
-        shapContributionLabel: "行为贡献（SHAP）：",
+        modelConfidenceLabel: "模型置信度",
+        shapContributionLabel: "行为贡献",
 
         langToggleLabel: "中 / EN",
     },
@@ -62,18 +72,28 @@ const MESSAGES = {
         goodMedian: "Good creators median",
         goodMin: "Good creators minimum",
 
+        dashboardEyebrow: "Creator Intelligence",
+        dashboardTitle: "Creator Value Dashboard",
+        insightEyebrow: "Diagnosis",
+        insightColumnTitle: "Insights and actions",
+        chartEyebrow: "Benchmark",
+        chartColumnTitle: "Core feature benchmark",
         basicInfoTitle: "Basic Info",
         modelSectionTitle: "Model Decision",
         scoreSectionTitle: "Business Value Score",
-        aiExplainTitle: "AI Explanation",
+        aiExplainTitle: "Value Explanation",
         suggestionsTitle: "Suggestions",
         suggestionsSummaryTitle: "Summary",
-        peersTitle: "Similar creators (top 3)",
+        peersTitle: "Similar creators",
         viewDetails: "View details",
         close: "Close",
         insightsTitle: "AI insights (details)",
-        strengthsTitle: "Strengths (Top 3)",
-        weaknessesTitle: "Weaknesses (Top 3)",
+        strengthsTitle: "Strengths Top 3",
+        weaknessesTitle: "Weaknesses Top 3",
+        chartInteractionTitle: "Interaction scale",
+        chartPlayTitle: "Play performance",
+        chartBehaviorTitle: "Interaction quality",
+        chartLengthTitle: "Content rhythm",
 
         uidLabel: "UID:",
         upNameLabel: "Creator:",
@@ -81,8 +101,8 @@ const MESSAGES = {
         bizClassLabel: "Business class:",
         confidenceLabel: "Confidence:",
         scoreRangeLabel: "Score range:",
-        modelConfidenceLabel: "Model confidence:",
-        shapContributionLabel: "Behavior contribution (SHAP):",
+        modelConfidenceLabel: "Model confidence",
+        shapContributionLabel: "Behavior contribution",
 
         langToggleLabel: "中 / EN",
     },
@@ -91,6 +111,19 @@ const MESSAGES = {
 function t(key) {
     const table = MESSAGES[currentLang] || MESSAGES.zh;
     return table[key] || key;
+}
+
+function formatNumber(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n) || n < 0) return "-";
+    return n.toLocaleString();
+}
+
+function getCreatorInitial(name) {
+    const s = String(name || "").trim();
+    if (!s) return "UP";
+    const first = Array.from(s)[0] || "U";
+    return first.toUpperCase();
 }
 
 function sanitizeAiText(text) {
@@ -113,6 +146,15 @@ function applyI18n() {
 
 // 更新已有图表的 legend 文案（中英文切换时调用）
 function updateChartLegends() {
+    Object.values(chartInstances).forEach((chart) => {
+        if (!chart || !chart.data || !chart.data.datasets) return;
+        const ds = chart.data.datasets;
+        if (ds[0]) ds[0].label = t("currentUp");
+        if (ds[1]) ds[1].label = t("goodMedian");
+        if (ds[2]) ds[2].label = t("goodMin");
+        chart.update();
+    });
+
     if (!window.Chart || !Chart.instances) return;
 
     const instances = Chart.instances;
@@ -185,6 +227,8 @@ const FEATURE_GROUPS = {
     interaction_behavior: ["danmaku_missing_rate", "comment_repetition", "upload_freq"],
     video_length: ["avg_length", "std_length"],
 };
+
+const chartInstances = {};
 
 // ========= 特征中英文解释（前端展示用；后端也会返回 feature_meta，这里作为兜底） =========
 const LOCAL_FEATURE_META = {
@@ -309,6 +353,7 @@ async function loadDashboard() {
 
         const pred = await predResp.json();
         const stats = await statsResp.json();
+        window.__lastStatsData = stats;
 
         // 后端返回 success=false 的情况
         if (!pred.success) {
@@ -380,9 +425,14 @@ function handlePredictError(pred) {
 // ========= UI 填充 =========
 function fillInfoPanel(pred) {
     const p = pred.prediction;
+    window.__lastPredData = pred;
 
-    document.getElementById("up_name").innerText = pred.up_name || "-";
-    document.getElementById("followers").innerText = pred.followers ?? "-";
+    const upName = pred.up_name || "-";
+    document.getElementById("up_name").textContent = upName;
+    document.getElementById("followers").textContent = formatNumber(pred.followers);
+
+    const initialEl = document.getElementById("creator_initial");
+    if (initialEl) initialEl.textContent = getCreatorInitial(upName);
 
     // 商业分类：根据语言映射
     let labelText = p.label_name || "-";
@@ -393,30 +443,38 @@ function fillInfoPanel(pred) {
             labelText = "Low business value";
         }
     }
-    document.getElementById("label_name").innerText = labelText;
+    const labelEl = document.getElementById("label_name");
+    labelEl.textContent = labelText;
+    labelEl.classList.toggle("low", Number(p.label_binary) !== 1);
 
-    document.getElementById("confidence").innerText = p.confidence.toFixed(3);
-    document.getElementById("value_score").innerText = p.value_score.toFixed(1);
-    document.getElementById("score_bucket").innerText = p.score_bucket;
+    document.getElementById("confidence").textContent = p.confidence.toFixed(3);
+    document.getElementById("value_score").textContent = p.value_score.toFixed(1);
+    document.getElementById("score_bucket").textContent = p.score_bucket;
+
+    const meter = document.getElementById("score-meter-fill");
+    if (meter) {
+        const score = Math.max(0, Math.min(100, Number(p.value_score) || 0));
+        meter.style.width = `${score}%`;
+    }
 
     const percentileSpan = document.getElementById("score_percentile_text");
     if (percentileSpan) {
         const percentText = `${p.score_percentile.toFixed(1)}%`;
         if (currentLang === "en") {
-            percentileSpan.innerText = ` (${percentText})`;
+            percentileSpan.textContent = ` (${percentText})`;
         } else {
-            percentileSpan.innerText = `（${percentText}）`;
+            percentileSpan.textContent = `（${percentText}）`;
         }
     }
 
     const confSpan = document.getElementById("score_confidence_text");
     if (confSpan) {
-        confSpan.innerText = `${(p.confidence * 100).toFixed(1)}%`;
+        confSpan.textContent = `${(p.confidence * 100).toFixed(1)}%`;
     }
 
     const shapSpan = document.getElementById("score_shap_text");
     if (shapSpan && typeof p.shap_norm === "number") {
-        shapSpan.innerText = `${(p.shap_norm * 100).toFixed(1)}%`;
+        shapSpan.textContent = `${(p.shap_norm * 100).toFixed(1)}%`;
     }
 }
 
@@ -706,49 +764,131 @@ function drawGroupChart(canvasId, cols, featValues, medianValues, minValues) {
     }
     const ctx = canvas.getContext("2d");
 
+    if (chartInstances[canvasId]) {
+        chartInstances[canvasId].destroy();
+    }
+
     const labels = cols.map(featureLabel);
     const upVals = cols.map((c) => featValues[c]);
     const medVals = cols.map((c) => medianValues[c]);
     const minVals = cols.map((c) => minValues[c]);
 
-    new Chart(ctx, {
-    type: "bar",
-    data: {
-        labels,
-        datasets: [
-            {
-                label: t("currentUp"),
-                data: upVals,
-                backgroundColor: "rgba(54,162,235,0.7)",
+    chartInstances[canvasId] = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: t("currentUp"),
+                    data: upVals,
+                    backgroundColor: "rgba(37, 88, 168, 0.78)",
+                    borderColor: "rgba(37, 88, 168, 1)",
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    maxBarThickness: 28,
+                },
+                {
+                    label: t("goodMedian"),
+                    data: medVals,
+                    backgroundColor: "rgba(15, 118, 110, 0.62)",
+                    borderColor: "rgba(15, 118, 110, 1)",
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    maxBarThickness: 28,
+                },
+                {
+                    label: t("goodMin"),
+                    data: minVals,
+                    backgroundColor: "rgba(180, 83, 9, 0.5)",
+                    borderColor: "rgba(180, 83, 9, 0.88)",
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    maxBarThickness: 28,
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            layout: {
+                padding: 0,
             },
-            {
-                label: t("goodMedian"),
-                data: medVals,
-                backgroundColor: "rgba(255,159,64,0.7)",
+            interaction: {
+                mode: "index",
+                intersect: false,
             },
-            {
-                label: t("goodMin"),
-                data: minVals,
-                backgroundColor: "rgba(75,192,192,0.7)",
-            },
-        ],
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            x: {
-                ticks: {
-                    maxRotation: 0,
-                    minRotation: 0,
+            plugins: {
+                legend: {
+                    position: "top",
+                    align: "end",
+                    labels: {
+                        boxWidth: 8,
+                        boxHeight: 8,
+                        usePointStyle: true,
+                        color: "#667085",
+                        font: {
+                            size: 11,
+                            weight: 700,
+                        },
+                    },
+                },
+                tooltip: {
+                    backgroundColor: "rgba(17, 24, 39, 0.92)",
+                    padding: 10,
+                    titleFont: {
+                        size: 13,
+                        weight: 800,
+                    },
+                    bodyFont: {
+                        size: 12,
+                    },
+                    callbacks: {
+                        label(context) {
+                            const raw = Number(context.raw);
+                            const value = Number.isFinite(raw) ? raw.toLocaleString(undefined, { maximumFractionDigits: 3 }) : context.raw;
+                            return `${context.dataset.label}: ${value}`;
+                        },
+                    },
                 },
             },
-            y: {
-                beginAtZero: true,
+            scales: {
+                x: {
+                    grid: {
+                        display: false,
+                    },
+                    ticks: {
+                        maxRotation: 0,
+                        minRotation: 0,
+                        color: "#667085",
+                        font: {
+                            size: 11,
+                            weight: 700,
+                        },
+                    },
+                },
+                y: {
+                    beginAtZero: true,
+                    border: {
+                        display: false,
+                    },
+                    grid: {
+                        color: "rgba(102, 112, 133, 0.14)",
+                    },
+                    ticks: {
+                        color: "#667085",
+                        font: {
+                            size: 11,
+                        },
+                        maxTicksLimit: 4,
+                        callback(value) {
+                            return Number(value).toLocaleString();
+                        },
+                    },
+                },
             },
         },
-    },
-});
+    });
 }
 
 // ========= 初始化（返回按钮 / 语言切换 / 终止按钮） =========
@@ -783,7 +923,11 @@ function initDashboard() {
             // 更新“评分区间”括号样式等
             const scoreData = window.__lastPredData;
             if (scoreData) {
+                featureMetaFromServer = null;
                 fillInfoPanel(scoreData);
+                if (window.__lastStatsData) {
+                    drawAllCharts(scoreData, window.__lastStatsData);
+                }
             }
         });
     }

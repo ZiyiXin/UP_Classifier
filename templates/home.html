@@ -2,198 +2,383 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>UP 商业价值分析</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
-            background: #f5f5f5;
+        :root {
+            --bg: #f4f6f8;
+            --panel: #ffffff;
+            --panel-soft: #f8fafc;
+            --ink: #111827;
+            --muted: #667085;
+            --line: #e4e7ec;
+            --blue: #2558a8;
+            --green: #0f766e;
+            --amber: #b45309;
+            --shadow: 0 18px 60px rgba(17, 24, 39, 0.08);
         }
 
-        .container {
-            max-width: 960px;
-            margin: 80px auto;
-            background: #fff;
-            padding: 40px 48px;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        * {
             box-sizing: border-box;
         }
 
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+            background:
+                linear-gradient(180deg, rgba(37, 88, 168, 0.08), rgba(37, 88, 168, 0) 260px),
+                var(--bg);
+            color: var(--ink);
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        .page {
+            width: min(1160px, calc(100vw - 40px));
+            margin: 42px auto;
+        }
+
+        .shell {
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(228, 231, 236, 0.9);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .topbar {
+            min-height: 72px;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .brand-mark {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            background: #111827;
+            color: #ffffff;
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            letter-spacing: 0;
+        }
+
+        .eyebrow {
+            font-size: 12px;
+            line-height: 1.2;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0;
+            margin-bottom: 4px;
+        }
+
         h1 {
-            margin-top: 0;
-            margin-bottom: 24px;
-            font-size: 28px;
+            margin: 0;
+            font-size: clamp(24px, 3vw, 34px);
+            line-height: 1.1;
+            letter-spacing: 0;
+        }
+
+        #home-lang-toggle {
+            border: 1px solid var(--line);
+            background: #ffffff;
+            color: var(--blue);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 9px 12px;
+            border-radius: 8px;
+            white-space: nowrap;
+        }
+
+        #home-lang-toggle:hover {
+            border-color: rgba(37, 88, 168, 0.35);
+            background: #f8fafc;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: minmax(0, 0.95fr) minmax(360px, 1.05fr);
+            gap: 0;
+        }
+
+        .search-panel,
+        .list-panel {
+            padding: 28px 30px 32px;
+        }
+
+        .search-panel {
+            border-right: 1px solid var(--line);
+        }
+
+        .section-title {
+            margin: 0 0 16px;
+            font-size: 15px;
+            line-height: 1.2;
+            font-weight: 800;
+            color: #1d2939;
         }
 
         .field {
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
+            margin-bottom: 9px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #344054;
+        }
+
+        .search-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 10px;
         }
 
         input[type="text"] {
             width: 100%;
-            padding: 10px 12px;
-            font-size: 16px;
+            height: 46px;
+            padding: 0 14px;
+            font-size: 15px;
             border-radius: 8px;
-            border: 1px solid #ddd;
+            border: 1px solid #cfd5df;
             outline: none;
-            box-sizing: border-box;
+            background: #ffffff;
+            color: var(--ink);
         }
 
         input[type="text"]:focus {
-            border-color: #409eff;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(37, 88, 168, 0.12);
         }
 
         .btn {
-            margin-top: 16px;
-            padding: 10px 22px;
-            font-size: 16px;
+            height: 46px;
+            padding: 0 18px;
+            font-size: 14px;
+            font-weight: 800;
             border-radius: 8px;
             border: none;
             cursor: pointer;
-            color: #fff;
-            background: #409eff;
+            color: #ffffff;
+            background: var(--blue);
+            white-space: nowrap;
         }
 
-        .top-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        #home-lang-toggle {
-            border: none;
-            background: none;
-            color: #409eff;
-            cursor: pointer;
-            font-size: 14px;
-            padding: 4px 8px;
-            border-radius: 6px;
-        }
-
-        #home-lang-toggle:hover {
-            background: rgba(64, 158, 255, 0.08);
+        .btn:hover {
+            background: #1f4d91;
         }
 
         .sub-text {
             font-size: 13px;
-            color: #666;
-            margin-top: 4px;
+            color: var(--muted);
+            margin-top: 8px;
+            line-height: 1.55;
         }
 
         .results {
-            margin-top: 18px;
-            padding-top: 14px;
-            border-top: 1px solid #eee;
+            margin-top: 26px;
+            padding-top: 22px;
+            border-top: 1px solid var(--line);
+        }
+
+        .list-panel {
+            background: var(--panel-soft);
+        }
+
+        .list-panel .results:first-child {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: 0;
         }
 
         .list {
             list-style: none;
             padding: 0;
-            margin: 10px 0 0;
+            margin: 12px 0 0;
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 10px;
         }
 
         .item {
-            border: 1px solid #eee;
-            border-radius: 12px;
-            padding: 10px 12px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 13px 14px;
             cursor: pointer;
-            background: #fff;
-            transition: background 0.15s ease, border-color 0.15s ease;
+            background: #ffffff;
+            transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
         }
 
         .item:hover {
-            background: #f7fbff;
-            border-color: rgba(64, 158, 255, 0.35);
+            transform: translateY(-1px);
+            border-color: rgba(37, 88, 168, 0.28);
+            box-shadow: 0 10px 24px rgba(17, 24, 39, 0.08);
         }
 
         .item-title {
-            font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 4px;
+            font-weight: 800;
+            font-size: 15px;
+            line-height: 1.35;
+            margin-bottom: 5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .item-sub {
             font-size: 12px;
-            color: #666;
+            color: var(--muted);
+            line-height: 1.3;
         }
 
         .hint {
-            margin-top: 8px;
+            margin-top: 10px;
             font-size: 13px;
-            color: #e6a23c;
+            color: var(--amber);
+            line-height: 1.5;
+        }
+
+        @media (max-width: 900px) {
+            .page {
+                width: min(100vw - 24px, 720px);
+                margin: 18px auto;
+            }
+
+            .topbar,
+            .search-panel,
+            .list-panel {
+                padding: 20px;
+            }
+
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+
+            .search-panel {
+                border-right: 0;
+                border-bottom: 1px solid var(--line);
+            }
+        }
+
+        @media (max-width: 560px) {
+            .topbar {
+                align-items: flex-start;
+            }
+
+            .brand-mark {
+                display: none;
+            }
+
+            .search-row {
+                grid-template-columns: 1fr;
+            }
+
+            .btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="top-row">
-            <h1 id="home-title">UP 主画像 · 商业价值分析</h1>
-            <button id="home-lang-toggle">中 / EN</button>
-        </div>
+    <main class="page">
+        <div class="shell">
+            <header class="topbar">
+                <div class="brand">
+                    <div class="brand-mark">UP</div>
+                    <div>
+                        <div class="eyebrow">Creator Intelligence</div>
+                        <h1 id="home-title">UP 主画像 · 商业价值分析</h1>
+                    </div>
+                </div>
+                <button id="home-lang-toggle" type="button">中 / EN</button>
+            </header>
 
-        <form id="search-form">
-            <div class="field">
-                <label for="query" id="uid-label">请输入 B 站 UID 或 UP 主名称：</label>
-                <input id="query" name="query" type="text" placeholder="例如：383433896 / 某某UP主" />
-                <div class="sub-text" id="uid-desc">支持 UID 精确搜索，也支持按 UP 主名字模糊搜索。</div>
+            <div class="workspace">
+                <section class="search-panel">
+                    <h2 class="section-title" id="search-title">账号检索</h2>
+                    <form id="search-form">
+                        <div class="field">
+                            <label for="query" id="uid-label">请输入 B 站 UID 或 UP 主名称</label>
+                            <div class="search-row">
+                                <input id="query" name="query" type="text" placeholder="例如：383433896 / 某某UP主" />
+                                <button class="btn" type="submit" id="submit-btn">查看画像</button>
+                            </div>
+                            <div class="sub-text" id="uid-desc">支持 UID 精确搜索，也支持按 UP 主名字模糊搜索。</div>
+                        </div>
+                    </form>
+
+                    <div class="results">
+                        <div class="section-title" id="result-title">搜索结果</div>
+                        <div id="hint" class="hint" style="display:none;"></div>
+                        <ul id="result-list" class="list"></ul>
+                    </div>
+                </section>
+
+                <aside class="list-panel">
+                    <div class="results">
+                        <div class="section-title" id="rec-title">随机推荐</div>
+                        <ul id="rec-list" class="list"></ul>
+                    </div>
+                </aside>
             </div>
-            <button class="btn" type="submit" id="submit-btn">查看画像</button>
-        </form>
-
-        <div class="results">
-            <div class="sub-text" id="result-title">搜索结果（点击进入仪表盘）</div>
-            <div id="hint" class="hint" style="display:none;"></div>
-            <ul id="result-list" class="list"></ul>
         </div>
-
-        <div class="results">
-            <div class="sub-text" id="rec-title">随机推荐</div>
-            <ul id="rec-list" class="list"></ul>
-        </div>
-    </div>
+    </main>
 
     <script>
         // 简单多语言支持（和 dashboard 共用 localStorage("lang")）
         const homeMessages = {
             zh: {
                 title: "UP 主画像 · 商业价值分析",
-                uidLabel: "请输入 B 站 UID 或 UP 主名称：",
+                searchTitle: "账号检索",
+                uidLabel: "请输入 B 站 UID 或 UP 主名称",
                 uidDesc: "支持 UID 精确搜索，也支持按 UP 主名字模糊搜索。",
                 placeholder: "例如：383433896 / 某某UP主",
                 submit: "查看画像",
                 langToggle: "中 / EN",
-                resultTitle: "搜索结果（点击进入仪表盘）",
+                resultTitle: "搜索结果",
                 recTitle: "随机推荐",
                 empty: "暂无结果，请换个关键词或直接输入 UID。",
+                followers: "粉丝",
             },
             en: {
                 title: "Creator Profile · Business Value Analysis",
-                uidLabel: "Enter a UID or creator name:",
-                uidDesc: "Supports exact UID search and fuzzy name search.",
+                searchTitle: "Creator lookup",
+                uidLabel: "Enter a UID or creator name",
+                uidDesc: "Supports exact UID search and fuzzy creator-name search.",
                 placeholder: "e.g. 383433896 / creator name",
                 submit: "View Dashboard",
                 langToggle: "中 / EN",
-                resultTitle: "Search results (click to open dashboard)",
+                resultTitle: "Search results",
                 recTitle: "Random picks",
                 empty: "No results. Try another keyword or enter a UID.",
+                followers: "followers",
             },
         };
 
         function applyHomeLang(lang) {
             const m = homeMessages[lang] || homeMessages.zh;
             document.getElementById("home-title").textContent = m.title;
+            document.getElementById("search-title").textContent = m.searchTitle;
             document.getElementById("uid-label").textContent = m.uidLabel;
             document.getElementById("uid-desc").textContent = m.uidDesc;
             document.getElementById("query").placeholder = m.placeholder;
@@ -201,6 +386,12 @@
             document.getElementById("home-lang-toggle").textContent = m.langToggle;
             document.getElementById("result-title").textContent = m.resultTitle;
             document.getElementById("rec-title").textContent = m.recTitle;
+        }
+
+        function formatCount(value) {
+            const n = Number(value);
+            if (!Number.isFinite(n) || n < 0) return "-";
+            return n.toLocaleString();
         }
 
         const savedLang = localStorage.getItem("lang") || "zh";
@@ -219,6 +410,7 @@
         }
 
         function renderList(container, items) {
+            const m = homeMessages[currentLang] || homeMessages.zh;
             container.innerHTML = "";
             items.forEach((it) => {
                 const li = document.createElement("li");
@@ -228,7 +420,7 @@
                 title.textContent = it.up_name ? `${it.up_name}` : `UID ${it.uid}`;
                 const sub = document.createElement("div");
                 sub.className = "item-sub";
-                const followersText = typeof it.followers === "number" && it.followers >= 0 ? ` · followers ${it.followers}` : "";
+                const followersText = typeof it.followers === "number" && it.followers >= 0 ? ` · ${m.followers} ${formatCount(it.followers)}` : "";
                 sub.textContent = `UID ${it.uid}${followersText}`;
                 li.appendChild(title);
                 li.appendChild(sub);
@@ -292,7 +484,6 @@
             runSearch(q);
         });
 
-        // 默认加载随机推荐
         loadRecommendations();
     </script>
 </body>
